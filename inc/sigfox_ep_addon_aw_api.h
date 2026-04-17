@@ -39,12 +39,13 @@
 
 #ifndef SIGFOX_EP_DISABLE_FLAGS_FILE
 #include "sigfox_ep_flags.h"
+#include "sigfox_ep_addon_aw_flags.h"
 #endif
 #include "sigfox_types.h"
 
 /*** SIGFOX EP ADDON AW API macros ***/
 
-#define SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_CHAR    17
+#define SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_BYTES   6
 #define SIGFOX_EP_ADDON_AW_API_SSID_SIZE_CHAR           32
 
 #define SIGFOX_EP_ADDON_AW_API_UL_PAYLOAD_SIZE_BYTES    12
@@ -89,8 +90,10 @@ typedef enum {
  *******************************************************************/
 typedef enum {
     SIGFOX_EP_ADDON_AW_API_FILTER_LOCALLY_ADMINISTERED = 0,
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
     SIGFOX_EP_ADDON_AW_API_FILTER_SSID_EMPTY,
     SIGFOX_EP_ADDON_AW_API_FILTER_SSID_BLACK_LIST,
+#endif
     SIGFOX_EP_ADDON_AW_API_FILTER_LAST
 } SIGFOX_EP_ADDON_AW_API_filter_t;
 
@@ -109,8 +112,10 @@ typedef enum {
  * \brief Sigfox EP ADDON AW access point structure.
  *******************************************************************/
 typedef struct {
-    sfx_u8 mac_address[SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_CHAR]; // ASCII format: "xx:xx:xx:xx:xx"
+    sfx_u8 mac_address[SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_BYTES];
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
     sfx_u8 ssid[SIGFOX_EP_ADDON_AW_API_SSID_SIZE_CHAR];
+#endif
     sfx_s16 rssi_dbm;
     SIGFOX_EP_ADDON_AW_API_access_point_status_t status;
 } SIGFOX_EP_ADDON_AW_API_access_point_t;

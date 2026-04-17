@@ -16,6 +16,7 @@ The table below shows the versions **compatibility** between this addon and the 
 
 | **EP_ADDON_AW** | **EP_LIB** |
 |:---:|:---:|
+| [v3.0](https://github.com/sigfox-tech-radio/sigfox-ep-addon-aw/releases/tag/v3.0) | >= [v4.0](https://github.com/sigfox-tech-radio/sigfox-ep-lib/releases/tag/v4.0) |
 | [v2.0](https://github.com/sigfox-tech-radio/sigfox-ep-addon-aw/releases/tag/v2.0) | >= [v4.0](https://github.com/sigfox-tech-radio/sigfox-ep-lib/releases/tag/v4.0) |
 
 ## Stack architecture
@@ -29,6 +30,15 @@ The table below shows the versions **compatibility** between this addon and the 
 This addon inherits all the [Sigfox End-Point library flags](https://github.com/sigfox-tech-radio/sigfox-ep-lib/wiki/compilation-flags-for-optimization) and can be optimized accordingly.
 
 The **12 bytes payload** must be available to use this addon.
+
+This addon also has specific compilation flags:
+
+| **Flag name** | **Value** | **Description** |
+|:---:|:---:|:---:|
+| `SIGFOX_EP_ADDON_AW_USE_SSID` | `undefined` / `defined` |  Enable the SSID usage in filtering functions. |
+
+> [!WARNING]
+> Disabling the `SIGFOX_EP_ADDON_AW_USE_SSID` flag will significantly reduce the memory footprint, but the geolocation success rate could be impacted since mobile phones and empty SSIDs will not be removed anymore.
 
 ## MAC address format
 
@@ -83,8 +93,10 @@ SIGFOX_EP_ADDON_AW_API_status_t sigfox_ep_addon_aw_status = SIGFOX_EP_ADDON_AW_A
 sfx_u8 filters = 0;
 
 filters |= (1 << SIGFOX_EP_ADDON_AW_API_FILTER_LOCALLY_ADMINISTERED);
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
 filters |= (1 << SIGFOX_EP_ADDON_AW_API_FILTER_SSID_EMPTY);
 filters |= (1 << SIGFOX_EP_ADDON_AW_API_FILTER_SSID_BLACK_LIST);
+#endif
 sigfox_ep_addon_aw_status = SIGFOX_EP_ADDON_AW_API_set_filter(filters, SIGFOX_EP_ADDON_AW_API_SORTING_RSSI);
 ```
 
@@ -99,9 +111,9 @@ SIGFOX_EP_ADDON_AW_API_input_data_t input_data;
 sfx_u8 ul_payload_wifi[SIGFOX_EP_ADDON_AW_API_UL_PAYLOAD_SIZE_BYTES];
 sfx_u8 nb_mac_ul_payload = 0;
 // Access points.
-SIGFOX_EP_ADDON_AW_API_access_point_t access_point_0 = { "C4:01:23:45:67:89", "ssid_0", -74, SIGFOX_EP_ADDON_AW_API_ACCESS_POINT_STATUS_NEW };
-SIGFOX_EP_ADDON_AW_API_access_point_t access_point_1 = { "C4:AB:CD:EF:01:23", "ssid_1", -55, SIGFOX_EP_ADDON_AW_API_ACCESS_POINT_STATUS_NEW };
-SIGFOX_EP_ADDON_AW_API_access_point_t access_point_2 = { "C4:45:67:89:AB:CD", "ssid_2", -69, SIGFOX_EP_ADDON_AW_API_ACCESS_POINT_STATUS_NEW };
+SIGFOX_EP_ADDON_AW_API_access_point_t access_point_0 = { { 0xC4, 0x01, 0x23, 0x45, 0x67, 0x89 }, "ssid_0", -74, SIGFOX_EP_ADDON_AW_API_ACCESS_POINT_STATUS_NEW };
+SIGFOX_EP_ADDON_AW_API_access_point_t access_point_1 = { { 0xC4, 0xAB, 0xCD, 0xEF, 0x01, 0x23 }, "ssid_1", -55, SIGFOX_EP_ADDON_AW_API_ACCESS_POINT_STATUS_NEW };
+SIGFOX_EP_ADDON_AW_API_access_point_t access_point_2 = { { 0xC4, 0x45, 0x67, 0x89, 0xAB, 0xCD }, "ssid_2", -69, SIGFOX_EP_ADDON_AW_API_ACCESS_POINT_STATUS_NEW };
 // Build list.
 SIGFOX_EP_ADDON_AW_API_access_point_t* access_point_list[] = { &access_point_0, &access_point_1, &access_point_2 };
 // Build input data structure.
@@ -146,7 +158,7 @@ cd lib/
 git submodule add https://github.com/sigfox-tech-radio/sigfox-ep-addon-aw.git
 ```
 
-This will clone the Sigfox End-Point Atlas WiFi l addon repository. At project level, you can commit the submodule creation with the following commands:
+This will clone the Sigfox End-Point Atlas WiFi addon repository. At project level, you can commit the submodule creation with the following commands:
 
 ```bash
 git commit --message "Add Sigfox End Point Atlas WiFi addon submodule."
@@ -224,7 +236,8 @@ cmake -DSIGFOX_EP_LIB_DIR=<sigfox-ep-lib path> \
       -DSIGFOX_EP_PUBLIC_KEY_CAPABLE=ON \
       -DSIGFOX_EP_VERBOSE=ON \
       -DSIGFOX_EP_ERROR_CODES=ON \
-      -DSIGFOX_EP_ERROR_STACK=12 ..
+      -DSIGFOX_EP_ERROR_STACK=12 \
+      -DSIGFOX_EP_ADDON_AW_USE_SSID=ON ..
 
 make precompil_sigfox_ep_addon_aw
 ```
@@ -276,7 +289,8 @@ cmake -DSIGFOX_EP_LIB_DIR=<sigfox-ep-lib path> \
       -DSIGFOX_EP_PUBLIC_KEY_CAPABLE=ON \
       -DSIGFOX_EP_VERBOSE=ON \
       -DSIGFOX_EP_ERROR_CODES=ON \
-      -DSIGFOX_EP_ERROR_STACK=12 ..
+      -DSIGFOX_EP_ERROR_STACK=12 \
+      -DSIGFOX_EP_ADDON_AW_USE_SSID=ON ..
 
 make sigfox_ep_addon_aw
 ```

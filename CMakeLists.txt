@@ -31,9 +31,10 @@
 ################################################################################
 
 cmake_minimum_required(VERSION 3.15)
+
 project(sigfox_ep_addon_aw)
     
-#Check if Project configure by himself or by a parent project (like sigfox-ep-lib)
+# Check if project is configured by himself or by a parent project.
 if ( ${CMAKE_SOURCE_DIR} STREQUAL ${PROJECT_SOURCE_DIR} )
     if (NOT DEFINED  SIGFOX_EP_LIB_DIR)
         message(FATAL_ERROR "${PROJECT_NAME} cannot be configured without -DSIGFOX_EP_LIB_DIR=<sigfox-ep-lib directory>")
@@ -47,40 +48,55 @@ else()
     endif()
 endif()
 
+# Compilation flags definitions.
+# Note: opt macro is defined in the CMakeLists.txt file of the sigfox-ep-lib repository).
+opt(TYPE_BOOL SIGFOX_EP_ADDON_AW_USE_SSID ON "Enable SSID usage")
+
+# Workaround to force a define to be set to 0 when value is 0 and not defined when value is OFF.
+foreach( COMPILE_FLAG ${COMPILE_FLAG_LIST} )
+    if((NOT ${COMPILE_FLAG} STREQUAL OFF) AND (NOT ${COMPILE_FLAG} STREQUAL ON))
+        set(${COMPILE_FLAG} "(${${COMPILE_FLAG}})")
+    endif()
+endforeach()
+
+# Add source and header files.
 set(ADDON_AW_SOURCES
     src/sigfox_ep_addon_aw_api.c
 )
-
 set(ADDON_AW_HEADERS 
     inc/sigfox_ep_addon_aw_api.h
     inc/sigfox_ep_addon_aw_version.h
 )
-
 set(ADDON_AW_PUBLIC_HEADERS
     inc/sigfox_ep_addon_aw_api.h
     inc/sigfox_ep_addon_aw_version.h
+    ${CMAKE_CURRENT_BINARY_DIR}/sigfox_ep_addon_aw_flags.h
 )
 
-#Add Cmake module path
+# Add Cmake module path.
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 
-#Precompile module
+# Configure and create compilation flags file.
+configure_file(sigfox_ep_addon_aw_flags.h.in sigfox_ep_addon_aw_flags.h @ONLY)
+
+# Precompile module.
 find_program(UNIFDEF unifdef)
 if(NOT UNIFDEF)
-    message(STATUS "unifdef - not found (precompilation target will not be available)")   
+    message(STATUS "unifdef tool not found: precompilation target will not be available")
 else()
     include(precompile_addon_aw)
 endif()
 
-#Target to create object
+# Target to create object.
 add_library(${PROJECT_NAME}_obj OBJECT EXCLUDE_FROM_ALL ${ADDON_AW_SOURCES})
 target_include_directories( ${PROJECT_NAME}_obj PUBLIC
+    ${CMAKE_CURRENT_BINARY_DIR}
     ${CMAKE_CURRENT_SOURCE_DIR}/inc
     #PRIVATE
     $<BUILD_INTERFACE:$<TARGET_PROPERTY:sigfox_ep_lib_obj,INTERFACE_INCLUDE_DIRECTORIES>>
 )
 
-#Target to create library
+# Target to create library.
 add_library(${PROJECT_NAME} STATIC $<TARGET_OBJECTS:${PROJECT_NAME}_obj>)
 target_include_directories(${PROJECT_NAME} PUBLIC
     $<BUILD_INTERFACE:$<TARGET_PROPERTY:${PROJECT_NAME}_obj,INTERFACE_INCLUDE_DIRECTORIES>>
@@ -92,5 +108,5 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 )
 install(TARGETS ${PROJECT_NAME}
     ARCHIVE DESTINATION ${LIB_LOCATION}
-    PUBLIC_HEADER DESTINATION ${API_LOCATION}  
+    PUBLIC_HEADER DESTINATION ${API_LOCATION}
 )
