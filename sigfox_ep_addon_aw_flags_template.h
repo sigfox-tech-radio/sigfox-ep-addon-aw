@@ -1,6 +1,6 @@
 /*!*****************************************************************
- * \file    sigfox_ep_addon_aw_version.h
- * \brief   Sigfox End-Point Atlas WiFi addon version.
+ * \file    sigfox_ep_addon_aw_flags.h
+ * \brief   Sigfox Addon Atlas WiFi compilations flags definition.
  *******************************************************************
  * \copyright
  *
@@ -34,14 +34,15 @@
  *
  *******************************************************************/
 
-#ifndef __SIGFOX_EP_ADDON_AW_VERSION_H__
-#define __SIGFOX_EP_ADDON_AW_VERSION_H__
+#ifndef __SIGFOX_EP_ADDON_AW_FLAGS_H__
+#define __SIGFOX_EP_ADDON_AW_FLAGS_H__
 
-/*** Main version ***/
+/*** Addon compilation flags ***/
 
-#define SIGFOX_EP_ADDON_AW_VERSION              "v3.0"
-#define SIGFOX_EP_ADDON_AW_VERSION_MAJOR        3
-#define SIGFOX_EP_ADDON_AW_VERSION_MINOR        0
-#define SIGFOX_EP_ADDON_AW_VERSION_DEV_FLAG     0
+/*!******************************************************************
+ * \def SIGFOX_EP_ADDON_AW_USE_SSID
+ * \brief Enable the SSID usage in filtering functions.
+ *******************************************************************/
+#define SIGFOX_EP_ADDON_AW_USE_SSID
 
-#endif /* __SIGFOX_EP_ADDON_AW_VERSION_H__ */
+#endif /* __SIGFOX_EP_ADDON_AW_FLAGS_H__ */

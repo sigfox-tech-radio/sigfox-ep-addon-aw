@@ -38,12 +38,11 @@
 
 #ifndef SIGFOX_EP_DISABLE_FLAGS_FILE
 #include "sigfox_ep_flags.h"
+#include "sigfox_ep_addon_aw_flags.h"
 #endif
 #include "sigfox_types.h"
 
 /*** SIGFOX EP ADDON AW API local macros ***/
-
-#define SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_BYTES   6
 
 #define SIGFOX_EP_ADDON_AW_API_IG_BYTE_INDEX            0
 #define SIGFOX_EP_ADDON_AW_API_IG_BIT_MASK              0x01
@@ -58,7 +57,6 @@
 #define SIGFOX_EP_ADDON_AW_API_BEST_INDEX_NONE          0xFF
 
 #define SIGFOX_EP_ADDON_AW_API_NULL_CHAR                '\0'
-#define SIGFOX_EP_ADDON_AW_API_MAC_BYTE_SEPARATOR_CHAR  ':'
 
 #define SIGFOX_EP_ADDON_AW_UPPERCASE_OFFSET             0x20
 
@@ -67,8 +65,10 @@
 /*** SIGFOX EP ADDON AW API local functions declaration ***/
 
 static void _filter_locally_administered(SIGFOX_EP_ADDON_AW_API_access_point_t *access_point, sfx_u8 *mac_address_bytes, sfx_bool *access_point_is_valid);
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
 static void _filter_ssid_empty(SIGFOX_EP_ADDON_AW_API_access_point_t *access_point, sfx_u8 *mac_address_bytes, sfx_bool *access_point_is_valid);
 static void _filter_ssid_black_list(SIGFOX_EP_ADDON_AW_API_access_point_t *access_point, sfx_u8 *mac_address_bytes, sfx_bool *access_point_is_valid);
+#endif
 
 static void _sort_none(SIGFOX_EP_ADDON_AW_API_input_data_t *input_list);
 static void _sort_rssi(SIGFOX_EP_ADDON_AW_API_input_data_t *input_list);
@@ -90,8 +90,10 @@ typedef struct {
 
 static const SIGFOX_EP_ADDON_AW_API_filter_cb_t SIGFOX_EP_ADDON_AW_API_FILTER[SIGFOX_EP_ADDON_AW_API_FILTER_LAST] = {
     &_filter_locally_administered,
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
     &_filter_ssid_empty,
     &_filter_ssid_black_list,
+#endif
 };
 
 static const SIGFOX_EP_ADDON_AW_API_sort_cb_t SIGFOX_EP_ADDON_AW_API_SORT[SIGFOX_EP_ADDON_AW_API_SORTING_LAST] = {
@@ -99,12 +101,15 @@ static const SIGFOX_EP_ADDON_AW_API_sort_cb_t SIGFOX_EP_ADDON_AW_API_SORT[SIGFOX
     &_sort_rssi,
 };
 
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
 static const sfx_u8 SIGFOX_EP_ADDON_AW_API_SSID_PHONE[] = "phone";
 static const sfx_u8 SIGFOX_EP_ADDON_AW_API_SSID_HUAWEI[] = "huawei";
 static const sfx_u8 SIGFOX_EP_ADDON_AW_API_SSID_SAMSUNG[] = "samsung";
 static const sfx_u8 SIGFOX_EP_ADDON_AW_API_SSID_ANDROID[] = "android";
 static const sfx_u8 SIGFOX_EP_ADDON_AW_API_SSID_APPLE[] = "apple";
+#endif
 
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
 static const sfx_u8* const SIGFOX_EP_ADDON_AW_API_SSID_BLACK_LIST[SIGFOX_EP_ADDON_AW_API_SSID_BLACK_LIST_SIZE] = {
     SIGFOX_EP_ADDON_AW_API_SSID_PHONE,
     SIGFOX_EP_ADDON_AW_API_SSID_HUAWEI,
@@ -112,6 +117,7 @@ static const sfx_u8* const SIGFOX_EP_ADDON_AW_API_SSID_BLACK_LIST[SIGFOX_EP_ADDO
     SIGFOX_EP_ADDON_AW_API_SSID_ANDROID,
     SIGFOX_EP_ADDON_AW_API_SSID_APPLE,
 };
+#endif
 
 static SIGFOX_EP_ADDON_AW_API_context_t sigfox_ep_addon_aw_api_ctx = {
     .filters = 0,
@@ -120,6 +126,7 @@ static SIGFOX_EP_ADDON_AW_API_context_t sigfox_ep_addon_aw_api_ctx = {
 
 /*** SIGFOX EP ADDON AW API local functions ***/
 
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
 /*******************************************************************/
 static sfx_bool _compare_string(sfx_u8 *str, sfx_u8 *ref) {
     // Local variables.
@@ -137,7 +144,9 @@ static sfx_bool _compare_string(sfx_u8 *str, sfx_u8 *ref) {
     }
     return is_equal;
 }
+#endif
 
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
 /*******************************************************************/
 static sfx_bool _search_substring(sfx_u8 *full_string, sfx_u8 *substring) {
     // Local variables.
@@ -154,83 +163,7 @@ static sfx_bool _search_substring(sfx_u8 *full_string, sfx_u8 *substring) {
     }
     return substring_found;
 }
-
-/*******************************************************************/
-static SIGFOX_EP_ADDON_AW_API_status_t _ascii_to_value(sfx_u8 ascii_character, sfx_u8 *value) {
-    // Local variables.
-#ifdef SIGFOX_EP_ERROR_CODES
-    SIGFOX_EP_ADDON_AW_API_status_t status = SIGFOX_EP_ADDON_AW_API_SUCCESS;
 #endif
-    // Reset value.
-    (*value) = 0;
-    // Convert to uppercase.
-    if (ascii_character > 'F') {
-        ascii_character -= SIGFOX_EP_ADDON_AW_UPPERCASE_OFFSET;
-    }
-    // Case of digit.
-    if ((ascii_character >= '0') && (ascii_character <= '9')) {
-        (*value) = (ascii_character - '0');
-    }
-    // Case of letter.
-    else if ((ascii_character >= 'A') && (ascii_character <= 'F')) {
-        (*value) = (ascii_character - 'A' + 10);
-    }
-    else {
-        SIGFOX_EXIT_ERROR(SIGFOX_EP_ADDON_AW_API_ERROR_MAC_ADDRESS_FORMAT);
-    }
-errors:
-    SIGFOX_RETURN();
-}
-
-/*******************************************************************/
-static SIGFOX_EP_ADDON_AW_API_status_t _mac_address_ascii_to_bytes_array(sfx_u8 *mac_address_ascii, sfx_u8 *mac_address_bytes) {
-    // Local variables.
-#ifdef SIGFOX_EP_ERROR_CODES
-    SIGFOX_EP_ADDON_AW_API_status_t status = SIGFOX_EP_ADDON_AW_API_SUCCESS;
-#endif
-    sfx_u8 digit_value = 0;
-    sfx_u8 char_idx = 0;
-    sfx_u8 byte_idx = 0;
-    // Reset output.
-    for (byte_idx = 0; byte_idx < SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_BYTES; byte_idx++) {
-        mac_address_bytes[byte_idx] = 0x00;
-    }
-#ifdef SIGFOX_EP_PARAMETERS_CHECK
-    // Check byte separator.
-    for (char_idx = 2; char_idx < SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_CHAR; char_idx += 3) {
-        // Exit if separator is not found.
-        if (mac_address_ascii[char_idx] != SIGFOX_EP_ADDON_AW_API_MAC_BYTE_SEPARATOR_CHAR) {
-            SIGFOX_EXIT_ERROR(SIGFOX_EP_ADDON_AW_API_ERROR_MAC_ADDRESS_SEPARATOR);
-        }
-    }
-#endif
-    byte_idx = 0;
-    // Convert ASCII to bytes.
-    for (char_idx = 0; char_idx < SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_CHAR; char_idx += 3) {
-        // First digit.
-#ifdef SIGFOX_EP_ERROR_CODES
-        status = _ascii_to_value (mac_address_ascii[char_idx], &digit_value);
-        SIGFOX_CHECK_STATUS(SIGFOX_EP_ADDON_AW_API_SUCCESS);
-#else
-        _ascii_to_value (mac_address_ascii[char_idx], &digit_value);
-#endif
-        mac_address_bytes[byte_idx] = ((digit_value << 4) & 0xF0);
-        // Second digit.
-#ifdef SIGFOX_EP_ERROR_CODES
-        status = _ascii_to_value (mac_address_ascii[char_idx + 1], &digit_value);
-        SIGFOX_CHECK_STATUS(SIGFOX_EP_ADDON_AW_API_SUCCESS);
-#else
-        _ascii_to_value (mac_address_ascii[char_idx], &digit_value);
-#endif
-        mac_address_bytes[byte_idx] |= ((digit_value << 0) & 0x0F);
-        // Increment output byte index.
-        byte_idx++;
-    }
-#if ((defined SIGFOX_EP_PARAMETERS_CHECK) || (defined SIGFOX_EP_ERROR_CODES))
-errors:
-#endif
-    SIGFOX_RETURN();
-}
 
 /*******************************************************************/
 static sfx_bool _mac_address_is_reserved(sfx_u8 *mac_address_bytes) {
@@ -269,6 +202,7 @@ static sfx_bool _mac_address_is_locally_administered(sfx_u8 *mac_address_bytes) 
     return is_locally_administered;
 }
 
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
 /*******************************************************************/
 static void _filter_ssid_empty(SIGFOX_EP_ADDON_AW_API_access_point_t *access_point, sfx_u8 *mac_address_bytes, sfx_bool *access_point_is_valid) {
     // Unused parameter.
@@ -286,7 +220,9 @@ static void _filter_ssid_empty(SIGFOX_EP_ADDON_AW_API_access_point_t *access_poi
         return;
     }
 }
+#endif
 
+#ifdef SIGFOX_EP_ADDON_AW_USE_SSID
 /*******************************************************************/
 static void _filter_ssid_black_list(SIGFOX_EP_ADDON_AW_API_access_point_t *access_point, sfx_u8 *mac_address_bytes, sfx_bool *access_point_is_valid) {
     // Unused parameter.
@@ -327,6 +263,7 @@ static void _filter_ssid_black_list(SIGFOX_EP_ADDON_AW_API_access_point_t *acces
         }
     }
 }
+#endif
 
 /*******************************************************************/
 static void _filter_locally_administered(SIGFOX_EP_ADDON_AW_API_access_point_t *access_point, sfx_u8 *mac_address_bytes, sfx_bool *access_point_is_valid) {
@@ -346,7 +283,6 @@ static SIGFOX_EP_ADDON_AW_API_status_t _filter_list(SIGFOX_EP_ADDON_AW_API_input
 #ifdef SIGFOX_EP_ERROR_CODES
     SIGFOX_EP_ADDON_AW_API_status_t status = SIGFOX_EP_ADDON_AW_API_SUCCESS;
 #endif
-    sfx_u8 mac_address_bytes[SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_BYTES];
     SIGFOX_EP_ADDON_AW_API_access_point_t *access_point;
     sfx_bool access_point_is_valid = SIGFOX_FALSE;
     sfx_u8 ap_idx = 0;
@@ -366,15 +302,8 @@ static SIGFOX_EP_ADDON_AW_API_status_t _filter_list(SIGFOX_EP_ADDON_AW_API_input
         }
         // Reset result.
         access_point->status = SIGFOX_EP_ADDON_AW_API_ACCESS_POINT_STATUS_FILTERED_OUT;
-        // Convert ASCII to bytes array.
-#ifdef SIGFOX_EP_ERROR_CODES
-        status = _mac_address_ascii_to_bytes_array((access_point->mac_address), mac_address_bytes);
-        SIGFOX_CHECK_STATUS(SIGFOX_EP_ADDON_AW_API_SUCCESS);
-#else
-        _mac_address_ascii_to_bytes_array((access_point->mac_address), mac_address_bytes);
-#endif
         // Mandatory filters: do not keep reserved and multicast addresses.
-        if ((_mac_address_is_reserved(mac_address_bytes) == SIGFOX_TRUE) || (_mac_address_is_multicast(mac_address_bytes) == SIGFOX_TRUE)) {
+        if ((_mac_address_is_reserved(access_point->mac_address) == SIGFOX_TRUE) || (_mac_address_is_multicast(access_point->mac_address) == SIGFOX_TRUE)) {
             continue;
         }
         // Set valid flag to true in case none filter is enabled.
@@ -384,7 +313,7 @@ static SIGFOX_EP_ADDON_AW_API_status_t _filter_list(SIGFOX_EP_ADDON_AW_API_input
             // Check mask.
             if ((sigfox_ep_addon_aw_api_ctx.filters & (1 << filter_idx)) != 0) {
                 // Execute filter function.
-                SIGFOX_EP_ADDON_AW_API_FILTER[filter_idx](access_point, mac_address_bytes, &access_point_is_valid);
+                SIGFOX_EP_ADDON_AW_API_FILTER[filter_idx](access_point, (access_point->mac_address), &access_point_is_valid);
                 // Directly exit as soon as an active filter fails.
                 if (access_point_is_valid == SIGFOX_FALSE) {
                     break;
@@ -395,7 +324,7 @@ static SIGFOX_EP_ADDON_AW_API_status_t _filter_list(SIGFOX_EP_ADDON_AW_API_input
             access_point->status = SIGFOX_EP_ADDON_AW_API_ACCESS_POINT_STATUS_VALID;
         }
     }
-#if ((defined SIGFOX_EP_PARAMETERS_CHECK) || (defined SIGFOX_EP_ERROR_CODES))
+#ifdef SIGFOX_EP_PARAMETERS_CHECK
 errors:
 #endif
     SIGFOX_RETURN();
@@ -505,7 +434,6 @@ SIGFOX_EP_ADDON_AW_API_status_t SIGFOX_EP_ADDON_AW_API_build_ul_payload(SIGFOX_E
 #ifdef SIGFOX_EP_ERROR_CODES
     SIGFOX_EP_ADDON_AW_API_status_t status = SIGFOX_EP_ADDON_AW_API_SUCCESS;
 #endif
-    sfx_u8 mac_address_bytes[SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_BYTES];
     sfx_u8 ap_idx = 0;
     sfx_u8 best_idx = 0;
     sfx_u8 byte_idx = 0;
@@ -545,16 +473,9 @@ SIGFOX_EP_ADDON_AW_API_status_t SIGFOX_EP_ADDON_AW_API_build_ul_payload(SIGFOX_E
         best_idx = sigfox_ep_addon_aw_api_ctx.best_index[ap_idx];
         // Check best index.
         if (best_idx != SIGFOX_EP_ADDON_AW_API_BEST_INDEX_NONE) {
-            // Convert ASCII to bytes array.
-#ifdef SIGFOX_EP_ERROR_CODES
-            status = _mac_address_ascii_to_bytes_array((input_data->access_point_list[best_idx]->mac_address), mac_address_bytes);
-            SIGFOX_CHECK_STATUS(SIGFOX_EP_ADDON_AW_API_SUCCESS);
-#else
-            _mac_address_ascii_to_bytes_array((input_data->access_point_list[best_idx]->mac_address), mac_address_bytes);
-#endif
             // Fill payload.
             for (byte_idx = 0; byte_idx < SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_BYTES; byte_idx++) {
-                ul_payload[(SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_BYTES * (*nb_mac_ul_payload)) + byte_idx] = mac_address_bytes[byte_idx];
+                ul_payload[(SIGFOX_EP_ADDON_AW_API_MAC_ADDRESS_SIZE_BYTES * (*nb_mac_ul_payload)) + byte_idx] = input_data->access_point_list[best_idx]->mac_address[byte_idx];
             }
             // Update access point status.
             input_data->access_point_list[best_idx]->status = SIGFOX_EP_ADDON_AW_API_ACCESS_POINT_STATUS_SENT;

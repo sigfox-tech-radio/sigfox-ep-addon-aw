@@ -30,7 +30,7 @@
 #
 ################################################################################
 
-#List of precompileInc and precompileSrc files
+# List of precompile header and source files.
 foreach(X IN LISTS ADDON_AW_SOURCES)
     LIST(APPEND PRECOMPIL_ADDON_AW_SOURCES "${PRECOMPIL_DIR}/${X}")
 endforeach()
@@ -41,19 +41,19 @@ foreach(X IN LISTS ADDON_AW_PUBLIC_HEADERS)
     LIST(APPEND PRECOMPIL_ADDON_AW_PUBLIC_HEADERS "${PRECOMPIL_DIR}/${X}")
 endforeach()
 
-#Custom command Loop for all Sources
+# Custom command loop for all sources.
 foreach(X IN LISTS ADDON_AW_SOURCES ADDON_AW_HEADERS)
-add_custom_command(
-    OUTPUT "${PRECOMPIL_DIR}/${X}"
-    DEPENDS ${CMAKE_BINARY_DIR}/undefs_file
-    DEPENDS ${CMAKE_BINARY_DIR}/defs_file
-    DEPENDS ${X}
-    COMMAND ${CMAKE_COMMAND} -E make_directory ${PRECOMPIL_DIR}/src  ${PRECOMPIL_DIR}/inc
-    COMMAND unifdef -B -k -x 2 -f ${CMAKE_BINARY_DIR}/undefs_file -f ${CMAKE_BINARY_DIR}/defs_file ${PROJECT_SOURCE_DIR}/${X} > "${PRECOMPIL_DIR}/${X}" 
-    VERBATIM
-)
-
+    add_custom_command(
+        OUTPUT "${PRECOMPIL_DIR}/${X}"
+        DEPENDS ${CMAKE_BINARY_DIR}/undefs_file
+        DEPENDS ${CMAKE_BINARY_DIR}/defs_file
+        DEPENDS ${X}
+        COMMAND ${CMAKE_COMMAND} -E make_directory ${PRECOMPIL_DIR}/src  ${PRECOMPIL_DIR}/inc
+        COMMAND unifdef -B -k -x 2 -f ${CMAKE_BINARY_DIR}/undefs_file -f ${CMAKE_BINARY_DIR}/defs_file ${PROJECT_SOURCE_DIR}/${X} > "${PRECOMPIL_DIR}/${X}" 
+        VERBATIM
+    )
 endforeach()
+
 set_property(GLOBAL PROPERTY ALLOW_DUPLICATE_CUSTOM_TARGETS 1)
 
 add_custom_target(precompil_${PROJECT_NAME}
