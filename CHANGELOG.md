@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [v3.1](https://github.com/sigfox-tech-radio/sigfox-ep-lib/releases/tag/v3.1) - 13 Nov 2026
+
+### Changed
+
+* Changed from the Clear BSD License to the standard **BSD 3-Clause License**. See the `LICENSE` file for details.
+
 ## [v3.0](https://github.com/sigfox-tech-radio/sigfox-ep-lib/releases/tag/v3.0) - 17 Apr 2026
 
 ### Added
